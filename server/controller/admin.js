@@ -1,6 +1,6 @@
-import Student from "../model/studentSchema"
-import Class from ".../model/classSchema"
-import College from "../model/collegeSchema"
+import Student from "../model/studentSchema.js"
+import Class from "../model/classSchema.js"
+import College from "../model/collegeSchema.js"
 
 export const removeStudent = async (req, res) => {
     try{
@@ -18,7 +18,7 @@ export const removeStudent = async (req, res) => {
     }
 }
 
-export const creatNotice = async (req, res) => {
+export const createNotice = async (req, res) => {
     try{
         const {title, description, classId} = req.body;
         const date = new Date();
@@ -36,10 +36,20 @@ export const creatNotice = async (req, res) => {
 export const createClassRoom = async (req, res) => {
     try{
         const {classId, className, collegeId} = req.body;
+        const existClass = await Class.findOne({classId: classId})
+        if(existClass){
+            return res.status(404).json({message: "Class already exists", status:404})
+        }
         const classRoom = new Class({classId, className, collegeId})
         const savedClass = await classRoom.save()
-        const college = await College.findOne({collegeId: collegeId})
-        college.classes.push({classId, className})
+
+        const newCollege = await Class.updateOne({collegeId: collegeId}, {
+            $push:{
+                classes: savedClass
+            }
+        },{
+                new:true 
+            })
         res.status(200).json({message:`class room created in ${collegeId}`, status:200})
     }catch(e){
         res.status(400).json({message: err.message, status:400})
@@ -63,18 +73,38 @@ export const reorient = async (req, res) => {
 
 export const attendencePortal = async (req, res) => {
     try{
-
-        const {classId, time, title, dayTitle} = req.body;
-        const classRoom = await Class.findone({classId: classId})
+        const {classId, time, title} = req.body;
+        const classRoom = await Class.findOne({ classId: classId     })
         if(!classRoom){
-            res.status(404).json({message:"Class not found", status:404})
+            return res.status(404).json({message:"class not found", status:404})
         }
-        classRoom.attendence = {title: title, time: time};
-        var res = new Date();
-        classRoom.workingDay.push(res)
-        classRoom.save();
-
+        const workingdays =classRoom.workingdays  
+        let today = new Date().toISOString().split('T')[0];
+        if(workingdays[workingdays.length-1]!==today){
+        const newClassRoom = await Class.updateOne({_id: classRoom._id}, {
+            $push:{
+                workingdays: today
+            }, $set:{
+                attendenceTime: time
+            }
+        },{
+                new:true 
+            }) 
+            console.log("new working updated");
+        }else{
+            const newClassRoom = await Class.updateOne({_id: classRoom._id}, {
+                $set:{
+                    attendenceTime: time
+                }
+            },{
+                    new:true 
+            })
+            console.log("no update working day");
+        }
+        
+        return res.status(200).json({message:`time set for {$time}`, status:200})
     }catch(e) {
-        res.status(400).json({message: err.message, status:400})
+        console.log("catch block hit" + e);
+        res.status(400).json({message: e.message, status:400})
     }
 } 

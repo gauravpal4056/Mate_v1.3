@@ -4,8 +4,7 @@ const classSchema = new mongoose.Schema({
     
     classId:{
         type: String,
-        required: true,
-        min:8
+
     },
     className: {
         type: String,
@@ -18,7 +17,10 @@ const classSchema = new mongoose.Schema({
 
     notices:[Object],
 
-    workingdays: [Object]
+    workingdays: [Object],
+    attendenceTime:{
+        type: String,
+    }
 
 
 })

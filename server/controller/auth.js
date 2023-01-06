@@ -9,12 +9,11 @@ export const registerStudent = async (req, res) => {
 
     try{
         const {batch, name, rollNo, password, collegeId} = req.body
-        const college = await College.findOne({collegeId: collegeId})
         const student = await Student.findOne({rollNo: rollNo})
         if(student){
             return res.status(400).json({message:"student already exists", status:"400"})
         }
-
+        const college = await College.findOne({collegeId: collegeId})
         if(!college){
             return res.status(400).json({message:"College not found", status:"400"})
         }
@@ -51,17 +50,18 @@ export const registerAdmin = async (req, res) => {
 
     try{
         const {name, email, password, collegeId, collegePassword} = req.body
-        const admin = await Admin.findOne({emal: email})
+        const admin = await Admin.findOne({email: email})
         if(admin){
             return res.status(400).json({message:"admin email already exists", status:"400"})
-
         }
         const college = await College.findOne({collegeId:collegeId})
         if(!college){
             return res.status(400).json({message:"college not found", status:400})
         }
+        const cPass = college.password
+        const isMatch = await bcrypt.compare(collegePassword, cPass)
 
-        const isMatch = await bcrypt.compare(collegePassword, college.password);
+       // const isMatch = await bcrypt.compare(collegePassword, college.password);
         if(!isMatch){
             return res.status(401).json({message:"invalid credential", status:"401"})
         }

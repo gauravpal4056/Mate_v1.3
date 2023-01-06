@@ -27,7 +27,8 @@ app.use(cors({
 }))
 
 import authRoutes from './routes/auth.js'
-
+import adminRoutes from './routes/admin.js'
+import createCollege from './controller/createCollege.js'
 // ////mongoose////
 const PORT = process.env.PORT || 6001
 mongoose.set("strictQuery", false);
@@ -42,4 +43,6 @@ mongoose.connect(process.env.DATABASE_LINK, {
 
 /////routes////
 app.use('/auth', authRoutes)
-//  app.use('/mate03052002', )
+app.use('/admin', adminRoutes)
+
+app.post('/gaurav',createCollege )
